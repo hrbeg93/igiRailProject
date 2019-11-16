@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+    	http://www.springframework.org/schema/beans/spring-beans.xsd
+    	http://www.springframework.org/schema/context
+    	http://www.springframework.org/schema/context/spring-context.xsd
+    	http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+    	http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+        
+        <!--  add support for component scanning(base package) -->
+        <context:component-scan base-package="com.railproject.spring"></context:component-scan>
+        
+        <!--  add support formatting validation -->
+        <mvc:annotation-driven/>
+        
+        <!-- define spring view resolver -->
+        <bean 
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/view/"/>
+        <property name="suffix" value=".jsp"/>
+        </bean>
+        
+        
+          <!-- Step 1: Define Database DataSource / connection pool -->
+	<bean id="myDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/train_tracker?useSSL=false&amp;allowPublicKeyRetrieval=true" />
+        <property name="user" value="springstudent5" />
+        <property name="password" value="springstudent5" /> 
+
+        <!-- these are connection pool properties for C3P0 -->
+		<property name="initialPoolSize" value="5"/>
+        <property name="minPoolSize" value="5" />
+        <property name="maxPoolSize" value="20" />
+        <property name="maxIdleTime" value="30000" />
+	</bean>  
+	
+    <!-- Step 2: Setup Hibernate session factory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource" />
+		<property name="packagesToScan" value="com.railproject.spring" />
+		<property name="hibernateProperties">
+		   <props>
+		      <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+		      <prop key="hibernate.show_sql">true</prop>
+		   </props>
+		</property>
+   </bean>	  
+
+    <!-- Step 3: Setup Hibernate transaction manager -->
+	<bean id="myTransactionManager"
+            class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    
+    <!-- Step 4: Enable configuration of transactional behavior based on annotations -->
+	<tx:annotation-driven transaction-manager="myTransactionManager" />
+
+      <!--  add support to reading web resource like css, js, etc... -->
+    <mvc:resources location="/resources/" mapping="/resources/**"></mvc:resources>
+    
+    
+    <!--  file upload -->
+    <bean id = "multipartResolver"
+      class = "org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+    
+    
+    
+    <!-- load the customer error file -->
+  <!--  <bean id="messageSource"
+         class="org.springframework.context.support.ResourceBundleMessageSource">
+         <property name="basenames" value="resources.messages" />
+     </bean> -->
+        
+        
+        
+        
+        
+    </beans>
